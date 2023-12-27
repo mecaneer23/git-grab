@@ -69,6 +69,20 @@ def get_default_branch(user_name: str, repo_name: str) -> str:
         return loads(response.read().decode("utf-8"))["default_branch"]
 
 
+def get_repo_files(user_name: str, repo_name: str, branch: str) -> list[str]:
+    with urlopen(
+        f"https://api.github.com/repos/{user_name}/{repo_name}/git/trees/{branch}?recursive=1"
+    ) as response:
+        raw_json = loads(response.read().decode("utf-8"))
+
+    output = []
+    for file_or_folder in raw_json["tree"]:
+        if file_or_folder["type"] == "tree":
+            continue
+        output.append(file_or_folder["path"])
+    return output
+
+
 def main() -> None:
     args = parse_args()
     url: str = args.url
@@ -84,7 +98,11 @@ def main() -> None:
     user_name = get_url_user_name(url)
     repo_name = get_url_repo_name(url)
 
-    branch = get_default_branch(user_name, repo_name)
+    files = get_repo_files(
+        user_name, repo_name, get_default_branch(user_name, repo_name)
+    )
+
+    print(files)
 
 
 if __name__ == "__main__":
