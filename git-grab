@@ -2,6 +2,9 @@
 # pylint: disable=missing-docstring, invalid-name
 
 from argparse import ArgumentParser, Namespace
+from json import loads
+from re import findall
+from urllib.request import urlopen
 
 
 def parse_args() -> Namespace:
@@ -27,13 +30,61 @@ def parse_args() -> Namespace:
     return parser.parse_args()
 
 
+def get_url_domain(url: str) -> str:
+    return url.split("//", maxsplit=1)[1].split("/")[0]
+
+
+def get_url_user_name(url: str) -> str:
+    return url.split("/")[-2]
+
+
+def get_url_repo_name(url: str) -> str:
+    return url.rsplit("/", maxsplit=1)[1]
+
+
+def md_line_to_py(line: str) -> str:
+    return findall(r"\[([^\)]+)\]", line.split(" ", maxsplit=1)[1])[0]
+
+
+def md_list_to_py(
+    first_line_idx: int,
+    last_line_idx: int,
+    filename: str = "README.md",
+) -> list[str]:
+    """
+    Convert a markdown list to a python list.
+
+    Inspired from https://github.com/mecaneer23/Ndo/blob/main/src/md_to_py.py
+    md_table_to_lines() function
+    """
+
+    with open(filename, encoding="utf-8") as file:
+        lines = file.readlines()[first_line_idx - 1 : last_line_idx - 1]
+
+    return list(map(md_line_to_py, lines))
+
+
+def get_default_branch(user_name: str, repo_name: str) -> str:
+    with urlopen(f"https://api.github.com/repos/{user_name}/{repo_name}") as response:
+        return loads(response.read().decode("utf-8"))["default_branch"]
+
+
 def main() -> None:
     args = parse_args()
     url: str = args.url
     program: str = args.dependency
-    path: str = args.path or url.rsplit("/", maxsplit=1)[1]
+    path: str = args.path or get_url_repo_name(url)
 
-    print(url, program, path)
+    implemented_urls = md_list_to_py(36, 37)
+
+    if get_url_domain(url) not in implemented_urls:
+        raise ValueError(
+            f"Invalid url, valid urls are one of the following: {implemented_urls}"
+        )
+    user_name = get_url_user_name(url)
+    repo_name = get_url_repo_name(url)
+
+    branch = get_default_branch(user_name, repo_name)
 
 
 if __name__ == "__main__":

@@ -10,5 +10,4 @@ wget --directory-prefix path/to/directory --input-file URLs.txt
 
 ## github requests
 
-[get list of branches in a repo](https://api.github.com/repos/[USER]/[REPO])
 [get list of files in a repo (and some metadata)](https://api.github.com/repos/[USER]/[REPO]/git/trees/[BRANCH]?recursive=1)
