@@ -8,6 +8,7 @@ Download all URLs stored in a text file to a specific directory:
 wget --directory-prefix path/to/directory --input-file URLs.txt
 ```
 
-## todo
+## github requests
 
-- make git-grab file executable
+[get list of branches in a repo](https://api.github.com/repos/[USER]/[REPO])
+[get list of files in a repo (and some metadata)](https://api.github.com/repos/[USER]/[REPO]/git/trees/[BRANCH]?recursive=1)
