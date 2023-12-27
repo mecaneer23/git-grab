@@ -11,13 +11,13 @@
 ### With `wget`
 
 ```bash
-wget --output-document ~/.local/git-grab https://raw.githubusercontent.com/mecaneer23/git-grab/main/git-grab
+wget --output-document ~/.local/bin/git-grab https://raw.githubusercontent.com/mecaneer23/git-grab/main/git-grab
 ```
 
 ### With `curl`
 
 ```bash
-curl -f https://raw.githubusercontent.com/mecaneer23/git-grab/main/git-grab -o ~/.local/git-grab
+curl -f https://raw.githubusercontent.com/mecaneer23/git-grab/main/git-grab -o ~/.local/bin/git-grab
 ```
 
 ## Running
