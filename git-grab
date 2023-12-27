@@ -1,2 +1,40 @@
 #!/usr/bin/env python3
+# pylint: disable=missing-docstring, invalid-name
 
+from argparse import ArgumentParser, Namespace
+
+
+def parse_args() -> Namespace:
+    parser = ArgumentParser()
+    parser.add_argument(
+        "url",
+        type=str,
+    )
+    parser.add_argument(
+        "--dependency",
+        "-d",
+        type=str,
+        choices=("wget", "curl"),
+        default="wget",
+    )
+    parser.add_argument(
+        "path",
+        type=str,
+        nargs="?",
+        default="",
+    )
+
+    return parser.parse_args()
+
+
+def main() -> None:
+    args = parse_args()
+    url = args.url
+    program = args.dependency
+    path = args.path or url.rsplit("/", maxsplit=1)[1]
+
+    print(url, program, path)
+
+
+if __name__ == "__main__":
+    main()
