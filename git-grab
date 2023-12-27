@@ -29,9 +29,9 @@ def parse_args() -> Namespace:
 
 def main() -> None:
     args = parse_args()
-    url = args.url
-    program = args.dependency
-    path = args.path or url.rsplit("/", maxsplit=1)[1]
+    url: str = args.url
+    program: str = args.dependency
+    path: str = args.path or url.rsplit("/", maxsplit=1)[1]
 
     print(url, program, path)
 
