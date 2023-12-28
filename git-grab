@@ -70,7 +70,7 @@ def get_repo_files(user_name: str, repo_name: str, branch: str) -> list[str]:
     ) as response:
         raw_json = loads(response.read().decode("utf-8"))
 
-    output = []
+    output: list[str] = []
     for file_or_folder in raw_json["tree"]:
         if file_or_folder["type"] == "tree":
             continue
