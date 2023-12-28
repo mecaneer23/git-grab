@@ -39,9 +39,9 @@ Make sure to include the full url, such as [https://github.com/mecaneer23/git-gr
 
 ### Options
 
-| Option           | Default | Description                                                       |
-| ---------------- | ------- | ----------------------------------------------------------------- |
-| --dependency, -d | `wget`  | Takes in one of (`wget`, `curl`). Uses this program to get files. |
+| Option   | Default | Description |
+| -------- | ------- | ----------- |
+| None yet |         |             |
 
 ### Path
 

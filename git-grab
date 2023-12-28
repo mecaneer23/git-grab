@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 # pylint: disable=missing-docstring, invalid-name
 
+import os
 from argparse import ArgumentParser, Namespace
 from json import loads
 from re import findall
-from urllib.request import urlopen
+from sys import exit as sys_exit
+from urllib.request import urlopen, urlretrieve
 
 
 def parse_args() -> Namespace:
@@ -12,13 +14,6 @@ def parse_args() -> Namespace:
     parser.add_argument(
         "url",
         type=str,
-    )
-    parser.add_argument(
-        "--dependency",
-        "-d",
-        type=str,
-        choices=("wget", "curl"),
-        default="wget",
     )
     parser.add_argument(
         "path",
@@ -83,26 +78,60 @@ def get_repo_files(user_name: str, repo_name: str, branch: str) -> list[str]:
     return output
 
 
+def get_download_url(user_name: str, repo_name: str, filename: str) -> str:
+    with urlopen(
+        f"https://api.github.com/repos/{user_name}/{repo_name}/contents/{filename}"
+    ) as response:
+        return loads(response.read().decode("utf-8"))["download_url"]
+
+
+def download_files(
+    user_name: str, repo_name: str, files_list: list[str], output_path: str
+) -> None:
+    for file in files_list:
+        urlretrieve(
+            get_download_url(user_name, repo_name, file),
+            os.path.join(output_path, file),
+        )
+
+
 def main() -> None:
     args = parse_args()
     url: str = args.url
-    program: str = args.dependency
     path: str = args.path or get_url_repo_name(url)
 
-    implemented_urls = md_list_to_py(36, 37)
-
-    if get_url_domain(url) not in implemented_urls:
-        raise ValueError(
-            f"Invalid url, valid urls are one of the following: {implemented_urls}"
+    try:
+        implemented_urls = md_list_to_py(
+            36,
+            37,
+            os.path.join(os.path.join(os.getcwd(), os.path.dirname(__file__)), "README.md"),
         )
+        if get_url_domain(url) not in implemented_urls:
+            raise ValueError(
+                f"Invalid url, valid urls are one of the following: {implemented_urls}"
+            )
+    except FileNotFoundError:
+        print("Warning: unable to validate url domain")
+
     user_name = get_url_user_name(url)
     repo_name = get_url_repo_name(url)
-
     files = get_repo_files(
         user_name, repo_name, get_default_branch(user_name, repo_name)
     )
 
-    print(files)
+    try:
+        os.makedirs(path)
+    except FileExistsError:
+        sys_exit(f"File exists: `{path}`. Try adding a path.")
+
+    download_files(
+        user_name,
+        repo_name,
+        files,
+        path,
+    )
+
+    print(f"Successfully downloaded {len(files)} files to new folder `{path}`")
 
 
 if __name__ == "__main__":
