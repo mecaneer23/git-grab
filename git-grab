@@ -6,7 +6,7 @@ from json import loads
 from pathlib import Path
 from re import findall
 from sys import exit as sys_exit
-from urllib.request import urlopen, urlretrieve
+from urllib.request import urlopen
 
 
 def parse_args() -> Namespace:
@@ -89,10 +89,10 @@ def download_files(
     user_name: str, repo_name: str, files_list: list[str], output_path: Path
 ) -> None:
     for file in files_list:
-        urlretrieve(
+        with urlopen(
             get_download_url(user_name, repo_name, file),
-            output_path.joinpath(file),
-        )
+        ) as response, output_path.joinpath(file).open("wb") as output_file:
+            output_file.write(response.read())
 
 
 def validate_url(url: str) -> None:
