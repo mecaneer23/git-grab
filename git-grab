@@ -89,6 +89,8 @@ def download_files(
     user_name: str, repo_name: str, files_list: list[str], output_path: Path
 ) -> None:
     for file in files_list:
+        # TODO: Look into adding progress bar
+        # https://stackoverflow.com/questions/41106599/python-3-5-urllib-request-urlopen-progress-bar-available
         with urlopen(
             get_download_url(user_name, repo_name, file),
         ) as response, output_path.joinpath(file).open("wb") as output_file:
