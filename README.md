@@ -2,6 +2,19 @@
 
 `git clone`, but without `git`.
 
+## Contents
+
+- [Git Grab](#git-grab)
+  - [Contents](#contents)
+  - [What is Git Grab?](#what-is-git-grab)
+  - [Installing](#installing)
+    - [With `wget`](#with-wget)
+    - [With `curl`](#with-curl)
+  - [Running](#running)
+    - [What can `url` be?](#what-can-url-be)
+    - [Options](#options)
+    - [Path](#path)
+
 ## What is Git Grab?
 
 `git-grab` emulates `git clone`, grabbing all of the files from a provided git repository. However, it ignores all git history and doesn't grab the git files.
