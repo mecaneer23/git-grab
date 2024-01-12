@@ -52,9 +52,9 @@ Make sure to include the full url, such as [https://github.com/mecaneer23/git-gr
 
 ### Options
 
-| Option   | Default | Description |
-| -------- | ------- | ----------- |
-| None yet |         |             |
+| Option     | Default | Description                     |
+| ---------- | ------- | ------------------------------- |
+| --help, -h | N/A     | show this help message and exit |
 
 ### Path
 

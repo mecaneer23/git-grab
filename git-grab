@@ -2,6 +2,7 @@
 # pylint: disable=missing-docstring, invalid-name
 
 from argparse import ArgumentParser, Namespace
+from io import BytesIO
 from json import loads
 from pathlib import Path
 from re import findall
@@ -89,19 +90,30 @@ def download_files(
     user_name: str, repo_name: str, files_list: list[str], output_path: Path
 ) -> None:
     for file in files_list:
-        # TODO: Look into adding progress bar
-        # https://stackoverflow.com/questions/41106599/python-3-5-urllib-request-urlopen-progress-bar-available
         with urlopen(
             get_download_url(user_name, repo_name, file),
         ) as response, output_path.joinpath(file).open("wb") as output_file:
-            output_file.write(response.read())
+            length = response.getheader("content-length")
+            block_size = max(4096, int(length) // 100) if length else 1_000_000
+            output_buffer = BytesIO()
+            size = 0
+            while True:
+                block_buffer = response.read(block_size)
+                if not block_buffer:
+                    break
+                output_buffer.write(block_buffer)
+                size += len(block_buffer)
+                if length:
+                    print(f"Downloading {file}: {int(size / int(length) * 100)}%", end="\r")
+            print()
+            output_file.write(output_buffer.read())
 
 
 def validate_url(url: str) -> None:
     try:
         implemented_urls = md_list_to_py(
-            36,
-            37,
+            49,
+            50,
             Path(__file__).parent.joinpath("README.md"),
         )
         if get_url_domain(url) not in implemented_urls:
