@@ -6,12 +6,17 @@ However, it ignores all git history and doesn't grab the git files.
 """
 
 from argparse import ArgumentParser, Namespace
-from io import BytesIO
+from asyncio import gather, run
 from json import loads
 from pathlib import Path
 from re import findall
 from sys import exit as sys_exit
 from urllib.request import urlopen
+
+
+CYAN = "\033[0;36m"
+GREEN = "\033[0;32m"
+RESET = "\033[0m"
 
 
 def parse_args() -> Namespace:
@@ -123,7 +128,23 @@ def get_download_url(user_name: str, repo_name: str, filename: str) -> str:
         return loads(response.read().decode("utf-8"))["download_url"]
 
 
-def download_files(
+async def download_file(file_name: str, output_path: Path, url: str) -> None:
+    """
+    Download a file with the given name and url to the provided output path.
+    """
+    path = Path(file_name)
+    parent = path.parent
+    if parent != Path(".") and not output_path.joinpath(parent).exists():
+        output_path.joinpath(parent).mkdir(parents=True)
+    with urlopen(url) as response, output_path.joinpath(file_name).open(
+        "wb"
+    ) as output_file:
+        print(f"{CYAN}Downloading {file_name}...{RESET}")
+        output_file.write(response.read())
+        print(f"{GREEN}Finished downloading {file_name}{RESET}\n")
+
+
+async def download_files(
     user_name: str, repo_name: str, files_list: list[str], output_path: Path
 ) -> None:
     """
@@ -133,27 +154,16 @@ def download_files(
 
     Write downloaded files to provided output path and return nothing.
     """
-    for file in files_list:
-        with urlopen(
-            get_download_url(user_name, repo_name, file),
-        ) as response, output_path.joinpath(file).open("wb") as output_file:
-            length = response.getheader("content-length")
-            block_size = max(4096, int(length) // 100) if length else 1_000_000
-            output_buffer = BytesIO()
-            size = 0
-            while True:
-                block_buffer = response.read(block_size)
-                if not block_buffer:
-                    break
-                output_buffer.write(block_buffer)
-                size += len(block_buffer)
-                if length:
-                    print(
-                        f"Downloading {file}: {int(size / int(length) * 100)}%",
-                        end="\r",
-                    )
-            print()
-            output_file.write(output_buffer.read())
+    await gather(
+        *[
+            download_file(
+                file_name,
+                output_path,
+                get_download_url(user_name, repo_name, file_name),
+            )
+            for file_name in files_list
+        ]
+    )
 
 
 def validate_url(url: str) -> None:
@@ -200,11 +210,13 @@ def main() -> None:
     except FileExistsError:
         sys_exit(f"File exists: `{path}`. Try adding a path.")
 
-    download_files(
-        user_name,
-        repo_name,
-        files,
-        path,
+    run(
+        download_files(
+            user_name,
+            repo_name,
+            files,
+            path,
+        )
     )
 
     print(f"Successfully downloaded {len(files)} files to new folder `{path}`")
