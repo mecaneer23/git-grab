@@ -131,7 +131,8 @@ def download_files(
 
     Generate a url based on the arguments. Download each file.
 
-    Write downloaded files to provided output path and return nothing."""
+    Write downloaded files to provided output path and return nothing.
+    """
     for file in files_list:
         with urlopen(
             get_download_url(user_name, repo_name, file),
