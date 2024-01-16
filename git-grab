@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
-# pylint: disable=missing-docstring, invalid-name
+# pylint: disable=invalid-name
+"""
+`git-grab` emulates `git clone`, grabbing all of the files from a provided git repository.
+However, it ignores all git history and doesn't grab the git files.
+"""
 
 from argparse import ArgumentParser, Namespace
 from io import BytesIO
@@ -11,6 +15,11 @@ from urllib.request import urlopen
 
 
 def parse_args() -> Namespace:
+    """
+    Parse command line arguments.
+    Use --help for help or see the
+    README for more information.
+    """
     parser = ArgumentParser()
     parser.add_argument(
         "url",
@@ -27,18 +36,33 @@ def parse_args() -> Namespace:
 
 
 def get_url_domain(url: str) -> str:
+    """Get domain portion of url"""
     return url.split("//", maxsplit=1)[1].split("/")[0]
 
 
 def get_url_user_name(url: str) -> str:
+    """
+    Get username portion of url
+
+    GitHub specific
+    """
     return url.split("/")[-2]
 
 
 def get_url_repo_name(url: str) -> str:
+    """
+    Get repository portion of url
+
+    GitHub specific
+    """
     return url.rsplit("/", maxsplit=1)[1]
 
 
 def md_line_to_py(line: str) -> str:
+    """
+    Convert a single list item from a
+    MarkDown formatted list to a Python string.
+    """
     return findall(r"\[([^\)]+)\]", line.split(" ", maxsplit=1)[1])[0]
 
 
@@ -61,11 +85,20 @@ def md_list_to_py(
 
 
 def get_default_branch(user_name: str, repo_name: str) -> str:
+    """
+    Make an api call to GitHub.
+    Return the default branch for the provided repository.
+    """
     with urlopen(f"https://api.github.com/repos/{user_name}/{repo_name}") as response:
         return loads(response.read().decode("utf-8"))["default_branch"]
 
 
 def get_repo_files(user_name: str, repo_name: str, branch: str) -> list[str]:
+    """
+    Make an api call to GitHub.
+
+    Return a list of all files (including paths) in the repository.
+    """
     with urlopen(
         f"https://api.github.com/repos/{user_name}/{repo_name}/git/trees/{branch}?recursive=1"
     ) as response:
@@ -80,6 +113,10 @@ def get_repo_files(user_name: str, repo_name: str, branch: str) -> list[str]:
 
 
 def get_download_url(user_name: str, repo_name: str, filename: str) -> str:
+    """
+    Make an api call to GitHub.
+    Return the url to download the provided file as a raw file.
+    """
     with urlopen(
         f"https://api.github.com/repos/{user_name}/{repo_name}/contents/{filename}"
     ) as response:
@@ -89,6 +126,12 @@ def get_download_url(user_name: str, repo_name: str, filename: str) -> str:
 def download_files(
     user_name: str, repo_name: str, files_list: list[str], output_path: Path
 ) -> None:
+    """
+    Iterate through the provided files.
+
+    Generate a url based on the arguments. Download each file.
+
+    Write downloaded files to provided output path and return nothing."""
     for file in files_list:
         with urlopen(
             get_download_url(user_name, repo_name, file),
@@ -104,12 +147,20 @@ def download_files(
                 output_buffer.write(block_buffer)
                 size += len(block_buffer)
                 if length:
-                    print(f"Downloading {file}: {int(size / int(length) * 100)}%", end="\r")
+                    print(
+                        f"Downloading {file}: {int(size / int(length) * 100)}%",
+                        end="\r",
+                    )
             print()
             output_file.write(output_buffer.read())
 
 
 def validate_url(url: str) -> None:
+    """
+    Try to validate the provided url using the list from the README.
+    If the url is not valid, raise a ValueError.
+    If the README is not available, do not validate and print warning.
+    """
     try:
         implemented_urls = md_list_to_py(
             49,
@@ -125,6 +176,11 @@ def validate_url(url: str) -> None:
 
 
 def main() -> None:
+    """
+    Entry point for git-grab.
+
+    Using command line arguments, download a repository from the internet.
+    """
     args = parse_args()
     url: str = args.url
     str_path: str = args.path or get_url_repo_name(url)
